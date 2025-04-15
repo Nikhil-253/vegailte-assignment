@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assignment: VegaLite Visualization</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body { display: flex; flex-direction: column; align-items: center; font-family: 'Times New Roman', Times, serif; }
+    #vis { width: 100%; max-width: 450px; }
+    h1 { font-size: 24px; margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <h1>Assignment: VegaLite Visualization</h1>
+  <div id="vis"></div>
+  <script>
+    const spec = {
+ "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "data": {
+    "url": "https://raw.githubusercontent.com/Nikhil-253/vegalite-data/main/HW-III.csv",
+    "format": {
+      "type": "csv",
+      "parse": {
+        "OrderDate": "date:'%m/%d/%y'",
+        "Units": "number",
+        "Unit Cost": "number",
+        "Total": "number"
+      }
+    }
+  },
+  "vconcat": [
+    {
+      "hconcat": [
+        {
+          "width": 750,
+          "height": 350,
+          "mark": {"type": "arc", "innerRadius": 90},
+          "params": [
+            {
+              "name": "hover",
+              "select": {
+                "type": "point",
+                "on": "mouseover",
+                "clear": "mouseout"
+              }
+            }
+          ],
+          "encoding": {
+            "theta": {
+              "field": "Total",
+              "type": "quantitative",
+              "aggregate": "sum"
+            },
+            "color": {
+              "field": "Rep",
+              "type": "nominal",
+              "legend": {"title": "Representative", "orient": "top"}
+            },
+            "tooltip": [
+              {"field": "Rep", "type": "nominal", "title": "Representative"},
+              {
+                "field": "Total",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "format": "$.2f",
+                "title": "Total Sales"
+              }
+            ]
+          },
+          "title": "Donut Chart: Total by Rep"
+        },
+        {
+          "width": 750,
+          "height": 350,
+          "selection": {"brush": {"type": "interval"}},
+          "mark": "point",
+          "encoding": {
+            "x": {"field": "Units", "type": "quantitative", "title": "Units"},
+            "y": {
+              "field": "Unit Cost",
+              "type": "quantitative",
+              "title": "Unit Cost"
+            },
+            "color": {
+              "condition": {
+                "selection": "brush",
+                "field": "Item",
+                "type": "nominal"
+              },
+              "value": "grey"
+            },
+            "size": {
+              "condition": {"param": "hover", "value": 150},
+              "value": 100
+            },
+            "tooltip": [
+              {"field": "Item", "type": "nominal"},
+              {"field": "Units", "type": "quantitative"},
+              {"field": "Unit Cost", "type": "quantitative"}
+            ]
+          },
+          "title": "Units vs Unit Cost"
+        }
+      ]
+    },
+    {
+      "hconcat": [
+        {
+          "width": 750,
+          "height": 350,
+          "mark": {
+            "type": "area",
+            "interpolate": "basis",
+            "line": {"color": "black", "size": 0.5},
+            "strokeJoin": "round"
+          },
+          "encoding": {
+            "x": {
+              "field": "OrderDate",
+              "type": "temporal",
+              "title": "Order Date",
+              "axis": {"format": "%b %Y", "tickCount": 10}
+            },
+            "y": {
+              "field": "Total",
+              "type": "quantitative",
+              "stack": "center",
+              "title": "Total",
+              "axis": {"grid": false}
+            },
+            "color": {
+              "field": "Item",
+              "type": "nominal",
+              "scale": {"scheme": "plasma"},
+              "legend": null
+            },
+            "opacity": {
+              "condition": {"param": "hover", "value": 1},
+              "value": 0.6
+            },
+            "tooltip": [
+              {"field": "Item", "type": "nominal"},
+              {"field": "OrderDate", "type": "temporal", "format": "%b %d, %Y"},
+              {
+                "field": "Total",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "format": ".2f"
+              }
+            ]
+          },
+          "params": [
+            {
+              "name": "hover",
+              "select": {
+                "type": "point",
+                "fields": ["Item"],
+                "on": "mouseover",
+                "clear": "mouseout"
+              }
+            }
+          ],
+          "title": "Streamgraph: Total by Item Over Time"
+        },
+        {
+          "width": 750,
+          "height": 350,
+          "layer": [
+            {
+              "mark": {
+                "type": "bar",
+                "opacity": 0.85,
+                "cornerRadius": 4,
+                "fill": "#4C78A8"
+              },
+              "encoding": {
+                "x": {
+                  "field": "Units",
+                  "bin": {"maxbins": 20},
+                  "type": "quantitative",
+                  "title": "Units",
+                  "axis": {"grid": false}
+                },
+                "y": {
+                  "aggregate": "count",
+                  "type": "quantitative",
+                  "title": "Count",
+                  "axis": {"tickCount": 5}
+                },
+                "opacity": {
+                  "condition": {"param": "hover", "value": 1},
+                  "value": 0.85
+                },
+                "tooltip": [
+                  {
+                    "field": "Units",
+                    "type": "quantitative",
+                    "bin": true,
+                    "title": "Units Range"
+                  },
+                  {
+                    "aggregate": "count",
+                    "type": "quantitative",
+                    "title": "Count"
+                  }
+                ]
+              },
+              "params": [
+                {
+                  "name": "hover",
+                  "select": {
+                    "type": "point",
+                    "on": "mouseover",
+                    "clear": "mouseout"
+                  }
+                }
+              ]
+            },
+            {
+              "mark": {
+                "type": "rule",
+                "color": "#F28E2B",
+                "size": 3,
+                "strokeDash": [4, 2]
+              },
+              "encoding": {
+                "x": {
+                  "field": "Units",
+                  "aggregate": "mean",
+                  "type": "quantitative"
+                },
+                "tooltip": [
+                  {
+                    "field": "Units",
+                    "aggregate": "mean",
+                    "type": "quantitative",
+                    "title": "Mean Units",
+                    "format": ".2f"
+                  }
+                ]
+              }
+            }
+          ],
+          "title": {
+            "text": "Histogram: Units Distribution",
+            "fontSize": 12,
+            "anchor": "start"
+          }
+        }
+      ]
+    },
+    {
+      "hconcat": [
+        {
+          "width": 750,
+          "height": 350,
+          "mark": {
+            "type": "bar",
+            "cornerRadiusTopLeft": 3,
+            "cornerRadiusTopRight": 3
+          },
+          "encoding": {
+            "x": {
+              "field": "Region",
+              "type": "nominal",
+              "title": "Region",
+              "axis": {"labelAngle": 0, "titlePadding": 10}
+            },
+            "y": {
+              "field": "Total",
+              "type": "quantitative",
+              "aggregate": "sum",
+              "title": "Total Sales",
+              "axis": {"format": "$,.0f", "grid": false}
+            },
+            "color": {
+              "field": "Item",
+              "type": "nominal",
+              "scale": {"scheme": "category10"}
+            },
+            "opacity": {
+              "condition": {"param": "hover", "value": 1},
+              "value": 0.7
+            },
+            "tooltip": [
+              {"field": "Region", "type": "nominal"},
+              {"field": "Item", "type": "nominal"},
+              {
+                "field": "Total",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "format": "$,.2f",
+                "title": "Total"
+              }
+            ]
+          },
+          "params": [
+            {
+              "name": "hover",
+              "select": {
+                "type": "point",
+                "fields": ["Item"],
+                "on": "mouseover",
+                "clear": "mouseout"
+              }
+            }
+          ],
+          "title": {
+            "text": "Stacked Bar: Sales by Region and Item",
+            "fontSize": 12,
+            "anchor": "start"
+          }
+        },
+        {
+          "width": 750,
+          "height": 350,
+          "mark": {
+            "type": "line",
+            "point": {"filled": true, "size": 120, "fillOpacity": 0.8},
+            "interpolate": "monotone",
+            "strokeWidth": 3
+          },
+          "encoding": {
+            "x": {
+              "field": "OrderDate",
+              "type": "temporal",
+              "title": "Order Date",
+              "axis": {"format": "%b %Y", "tickCount": 8}
+            },
+            "y": {
+              "field": "Total",
+              "type": "quantitative",
+              "aggregate": "sum",
+              "title": "Total Sales",
+              "axis": {"format": "$,.0f", "grid": false}
+            },
+            "color": {
+              "field": "Region",
+              "type": "nominal",
+              "scale": {"scheme": "set2"},
+              "legend": null
+            },
+            "strokeOpacity": {
+              "condition": {"param": "hover", "value": 1},
+              "value": 2
+            },
+            "tooltip": [
+              {
+                "field": "OrderDate",
+                "type": "temporal",
+                "format": "%b %d, %Y",
+                "title": "Date"
+              },
+              {"field": "Region", "type": "nominal"},
+              {
+                "field": "Total",
+                "type": "quantitative",
+                "aggregate": "sum",
+                "format": "$,.2f",
+                "title": "Total"
+              }
+            ]
+          },
+          "params": [
+            {
+              "name": "hover",
+              "select": {
+                "type": "point",
+                "fields": ["Region"],
+                "on": "mouseover",
+                "clear": "mouseout"
+              }
+            }
+          ],
+          "title": {
+            "text": "Line Chart: Sales by Region Over Time",
+            "fontSize": 12,
+            "anchor": "start"
+          }
+        }
+      ]
+    }
+  ],
+  "spacing": 20
+  // "config": {}
+};
+    vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
+  </script>
+</body>
+</html>
